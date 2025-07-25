@@ -1,0 +1,200 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legandary Xiters - Image to C++ Tool</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      font-family: 'Orbitron', sans-serif;
+      overflow-y: auto; height: 100vh;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
+      background: rgba(20, 0, 0, 0.9);
+      padding: 20px;
+      border-radius: 15px;
+      color: white;
+      animation: fadeIn 1.5s ease;
+    }
+    h1 {
+      text-align: center;
+      color: red;
+      font-size: 38px;
+      animation: slideIn 1s ease;
+    }
+    textarea, input[type="file"], input[type="color"] {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #222;
+      color: #fff;
+    }
+    button {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin: 3px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: 0.3s ease;
+    }
+    button:hover {
+      background-color: darkred;
+    }
+    pre {
+      white-space: pre-wrap;
+      background: #111;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+    @keyframes slideIn {
+      from {transform: translateY(-20px); opacity: 0;}
+      to {transform: translateY(0); opacity: 1;}
+    }
+  </style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<h1>Legandary Xiters</h1>
+<div class="container">
+  <h2>AOB Converter</h2>
+  <textarea id="input" rows="4" placeholder="Input"></textarea>
+  <textarea id="output" rows="4" placeholder="Output"></textarea>
+  <button onclick="aobToByte()">AOB to Byte</button>
+  <button onclick="byteToAob()">Byte to AOB</button>
+  <button onclick="clearAll()">Clear All</button>
+  <button onclick="copyOutput()">Copy</button>
+</div>
+
+<div class="container">
+  <h2>Color Picker</h2>
+  <input type="color" id="colorPicker">
+</div>
+
+<div class="container">
+  <h2>Image to C++</h2>
+  <input type="file" id="imageInput">
+  <button onclick="convertImageToCpp()">Convert Image</button>
+  <pre id="imageOutput"></pre>
+</div>
+
+<div class="container">
+  <h2>Font to C++</h2>
+  <input type="file" id="fontInput">
+  <button onclick="convertFontToCpp()">Convert Font</button>
+  <pre id="fontOutput"></pre>
+</div>
+
+<script>
+  function aobToByte() {
+    const input = document.getElementById("input").value.trim();
+    const output = input.split(" ").map(b => `0x${b}`).join(", ");
+    document.getElementById("output").value = output;
+  }
+
+  function byteToAob() {
+    const input = document.getElementById("input").value.trim();
+    const output = input.match(/0x[0-9a-fA-F]{2}/g)?.join(" ") || "";
+    document.getElementById("output").value = output;
+  }
+
+  function clearAll() {
+    document.getElementById("input").value = "";
+    document.getElementById("output").value = "";
+  }
+
+  function copyOutput() {
+    navigator.clipboard.writeText(document.getElementById("output").value);
+    alert("Copied to clipboard!");
+  }
+
+  function convertImageToCpp() {
+    const fileInput = document.getElementById("imageInput");
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const array = new Uint8Array(e.target.result);
+      const output = [];
+      array.forEach((byte, idx) => {
+        output.push(`0x${byte.toString(16).padStart(2, '0')}`);
+      });
+      const formatted = output.map((b, i) => (i % 12 === 0 ? "\n  " : "") + b).join(", ");
+      document.getElementById("imageOutput").textContent =
+        `unsigned char imageData[] = {${formatted}\n};\nunsigned int imageData_len = ${array.length};`;
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function convertFontToCpp() {
+    const fileInput = document.getElementById("fontInput");
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const array = new Uint8Array(e.target.result);
+      const output = [];
+      array.forEach((byte, idx) => {
+        output.push(`0x${byte.toString(16).padStart(2, '0')}`);
+      });
+      const formatted = output.map((b, i) => (i % 12 === 0 ? "\n  " : "") + b).join(", ");
+      document.getElementById("fontOutput").textContent =
+        `unsigned char fontData[] = {${formatted}\n};\nunsigned int fontData_len = ${array.length};`;
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // Particle animation
+  const canvas = document.getElementById("stars");
+  const ctx = canvas.getContext("2d");
+  let stars = [];
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    stars = [];
+    for (let i = 0; i < 150; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2,
+        speed: Math.random() * 0.5 + 0.2,
+      });
+    }
+  }
+  function animateStars() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let star of stars) {
+      star.y += star.speed;
+      if (star.y > canvas.height) star.y = 0;
+      ctx.fillStyle = "white";
+      ctx.fillRect(star.x, star.y, star.size, star.size);
+    }
+    requestAnimationFrame(animateStars);
+  }
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+  animateStars();
+</script>
+</body>
+</html>
